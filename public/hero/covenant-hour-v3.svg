@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000" role="img" aria-label="Covenant Hour of Prayer, Monday to Friday 5:00 to 6:00 AM">
+  <defs>
+    <linearGradient id="dawn" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#141416"/>
+      <stop offset="0.5" stop-color="#4a0d14"/>
+      <stop offset="0.85" stop-color="#b3121f"/>
+      <stop offset="1" stop-color="#f0c04a"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="1" r="0.5">
+      <stop offset="0" stop-color="#ffe08a" stop-opacity="0.9"/>
+      <stop offset="0.5" stop-color="#f0c04a" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#f0c04a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1000" height="1000" fill="url(#dawn)"/>
+  <rect width="1000" height="1000" fill="url(#sun)"/>
+  <circle cx="500" cy="1000" r="140" fill="#ffe08a" opacity="0.85"/>
+  <g stroke="#ffffff" stroke-opacity="0.12" stroke-width="2">
+    <line x1="500" y1="1000" x2="-100" y2="350"/><line x1="500" y1="1000" x2="200" y2="200"/>
+    <line x1="500" y1="1000" x2="500" y2="100"/><line x1="500" y1="1000" x2="800" y2="200"/>
+    <line x1="500" y1="1000" x2="1100" y2="350"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="500" y="400" fill="#f0c04a" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" letter-spacing="7">MONDAY TO FRIDAY</text>
+    <g fill="#ffffff" font-family="Impact, 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif" font-weight="700" font-size="124" letter-spacing="2">
+      <text x="500" y="520">COVENANT</text>
+      <text x="500" y="632">HOUR OF</text>
+      <text x="500" y="744">PRAYER</text>
+    </g>
+    <text x="500" y="828" fill="#f0c04a" font-family="Impact, 'Arial Narrow', Arial, sans-serif" font-size="64">5:00 – 6:00 AM</text>
+    <text x="500" y="880" fill="#ffffff" fill-opacity="0.9" font-family="Arial, Helvetica, sans-serif" font-size="21" letter-spacing="4">DAILY · IN PERSON AND ONLINE</text>
+  </g>
+</svg>

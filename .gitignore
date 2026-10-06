@@ -1,0 +1,23 @@
+# dependencies and build output
+node_modules/
+.next/
+out/
+dist/
+next-env.d.ts
+*.tsbuildinfo
+
+# secrets and local data
+.env
+.env.*
+!.env.example
+data/
+public/uploads/
+
+# editor and OS
+.DS_Store
+.vscode/
+.idea/
+
+# scratch
+scripts/.*.mjs
+scripts/.*.ts

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000" role="img" aria-label="Mid-week Service, Wednesdays 6:00 to 7:30 PM">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#141416"/>
+      <stop offset="1" stop-color="#26262b"/>
+    </linearGradient>
+    <linearGradient id="band" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b3121f"/>
+      <stop offset="1" stop-color="#8f0f1a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="1000" fill="url(#bg)"/>
+  <!-- diagonal band behind the text -->
+  <polygon points="0,300 1000,120 1000,860 0,1040" fill="url(#band)"/>
+  <polygon points="0,290 1000,110 1000,122 0,302" fill="#f0c04a"/>
+  <!-- open book -->
+  <g transform="translate(500 150)" fill="none" stroke="#ffffff" stroke-opacity="0.9" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0 0 C-45 -30 -105 -30 -150 -8 L-150 130 C-105 108 -45 108 0 138 Z"/>
+    <path d="M0 0 C45 -30 105 -30 150 -8 L150 130 C105 108 45 108 0 138 Z"/>
+    <line x1="0" y1="0" x2="0" y2="138"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="500" y="400" fill="#f0c04a" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" letter-spacing="7">EVERY WEDNESDAY</text>
+    <g fill="#ffffff" font-family="Impact, 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif" font-weight="700" font-size="150" letter-spacing="2">
+      <text x="500" y="550">MID-WEEK</text>
+      <text x="500" y="682">SERVICE</text>
+    </g>
+    <text x="500" y="775" fill="#f0c04a" font-family="Impact, 'Arial Narrow', Arial, sans-serif" font-size="64">6:00 – 7:30 PM</text>
+    <text x="500" y="835" fill="#ffffff" fill-opacity="0.85" font-family="Arial, Helvetica, sans-serif" font-size="21" letter-spacing="4">WORD AND PRAYER · WINNERS CHAPEL NASHVILLE</text>
+  </g>
+</svg>
