@@ -51,7 +51,7 @@ export default function Header({ announcement }: Props) {
             <img src="/logo.png" alt="" width={56} height={63} className={`header-logo w-auto shrink-0 ${scrolled ? 'h-10 xl:h-11' : 'h-10 sm:h-12 xl:h-14'}`} />
             <span className="flex min-w-0 flex-col leading-[1.05]">
               <span className="font-display text-[18px] tracking-[0.02em] sm:text-xl xl:text-2xl">Winners Chapel<span className="block sm:inline"> International</span></span>
-              <span className="hidden text-[11px] font-semibold uppercase tracking-[0.16em] text-muted whitespace-nowrap min-[400px]:block xl:text-xs">Nashville · {site.parent}</span>
+              <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted sm:text-[11px] xl:text-xs">Nashville<span className="hidden md:inline"> &middot; {site.parent}</span></span>
             </span>
           </Link>
 
