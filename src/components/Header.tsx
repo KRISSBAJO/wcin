@@ -30,7 +30,7 @@ export default function Header({ announcement }: Props) {
     return () => document.removeEventListener('keydown', onKey);
   }, []);
   const linkCls = (href: string) =>
-    `no-underline font-semibold whitespace-nowrap ${pathname === href ? 'text-accent lg:border-b-2 lg:border-accent lg:pb-0.5' : 'text-ink hover:text-accent'}`;
+    `no-underline font-semibold whitespace-nowrap ${pathname === href ? 'text-accent xl:border-b-2 xl:border-accent xl:pb-0.5' : 'text-ink hover:text-accent'}`;
 
   return (
     <>
@@ -45,38 +45,38 @@ export default function Header({ announcement }: Props) {
         </div>
       )}
       <header className={`site-header sticky top-0 z-20 border-b border-line bg-paper/95 backdrop-blur ${scrolled ? 'is-scrolled' : ''}`}>
-        <div className={`header-row wrap flex items-center justify-between gap-6 ${scrolled ? 'py-2' : 'py-4'}`}>
-          <Link href="/" className="flex min-w-0 items-center gap-3 no-underline text-ink hover:text-ink" aria-label={`${site.name} home`}>
+        <div className={`header-row wrap flex items-center justify-between gap-3 sm:gap-6 ${scrolled ? 'py-2' : 'py-4'}`}>
+          <Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-3 no-underline text-ink hover:text-ink" aria-label={`${site.name} home`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="" width={56} height={63} className={`header-logo w-auto shrink-0 ${scrolled ? 'h-10 lg:h-11' : 'h-12 lg:h-14'}`} />
+            <img src="/logo.png" alt="" width={56} height={63} className={`header-logo w-auto shrink-0 ${scrolled ? 'h-10 xl:h-11' : 'h-10 sm:h-12 xl:h-14'}`} />
             <span className="flex min-w-0 flex-col leading-[1.05]">
-              <span className="font-display text-xl tracking-[0.03em] whitespace-nowrap lg:text-2xl">Winners Chapel International</span>
-              <span className="hidden text-[11px] font-semibold uppercase tracking-[0.16em] text-muted whitespace-nowrap min-[400px]:block lg:text-xs">Nashville · {site.parent}</span>
+              <span className="font-display text-[18px] tracking-[0.02em] sm:text-xl xl:text-2xl">Winners Chapel<span className="block sm:inline"> International</span></span>
+              <span className="hidden text-[11px] font-semibold uppercase tracking-[0.16em] text-muted whitespace-nowrap min-[400px]:block xl:text-xs">Nashville · {site.parent}</span>
             </span>
           </Link>
 
           <nav
             id="site-nav"
             aria-label="Primary"
-            className={`${open ? 'flex' : 'hidden'} absolute inset-x-0 top-full flex-col border-b border-line bg-white shadow-[0_16px_32px_rgba(0,0,0,0.12)] lg:static lg:flex lg:flex-row lg:items-center lg:gap-5 lg:border-0 lg:bg-transparent lg:shadow-none xl:gap-7`}
+            className={`${open ? 'flex' : 'hidden'} absolute inset-x-0 top-full flex-col border-b border-line bg-white shadow-[0_16px_32px_rgba(0,0,0,0.12)] xl:static xl:flex xl:flex-row xl:items-center xl:gap-5 xl:border-0 xl:bg-transparent xl:shadow-none xl:gap-7`}
           >
             {nav.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 aria-current={pathname === item.href ? 'page' : undefined}
-                className={`${linkCls(item.href)} flex min-h-[52px] items-center border-t border-line px-4 sm:px-8 lg:min-h-0 lg:border-0 lg:px-0 ${pathname === item.href ? 'border-l-4 border-l-accent lg:border-l-0' : ''}`}
+                className={`${linkCls(item.href)} flex min-h-[52px] items-center border-t border-line px-4 sm:px-8 xl:min-h-0 xl:border-0 xl:px-0 ${pathname === item.href ? 'border-l-4 border-l-accent xl:border-l-0' : ''}`}
               >
-                {(() => { const I = navIcons[item.href]; return I ? <I size={18} className={`mr-3 lg:hidden ${pathname === item.href ? 'text-accent' : 'text-muted'}`} aria-hidden="true" /> : null; })()}
+                {(() => { const I = navIcons[item.href]; return I ? <I size={18} className={`mr-3 xl:hidden ${pathname === item.href ? 'text-accent' : 'text-muted'}`} aria-hidden="true" /> : null; })()}
                 {item.label}
-                <ChevronRight size={18} className="ml-auto text-muted lg:hidden" aria-hidden="true" />
+                <ChevronRight size={18} className="ml-auto text-muted xl:hidden" aria-hidden="true" />
               </Link>
             ))}
-            <Link href="/give" className="btn btn-primary btn-small hidden lg:inline-flex"><Heart size={14} aria-hidden="true" />Give</Link>
+            <Link href="/give" className="btn btn-primary btn-small mx-4 my-3 sm:hidden xl:mx-0 xl:my-0 xl:inline-flex"><Heart size={14} aria-hidden="true" />Give</Link>
           </nav>
 
-          <div className="flex items-center gap-2 lg:hidden">
-            <Link href="/give" className="btn btn-primary btn-small hidden min-[400px]:inline-flex"><Heart size={14} aria-hidden="true" />Give</Link>
+          <div className="flex shrink-0 items-center gap-2 xl:hidden">
+            <Link href="/give" className="btn btn-primary btn-small hidden sm:inline-flex"><Heart size={14} aria-hidden="true" />Give</Link>
             <button
               type="button"
               className="flex h-11 w-11 items-center justify-center border border-[#d0d0d4] bg-white text-ink"
