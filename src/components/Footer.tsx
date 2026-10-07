@@ -58,13 +58,13 @@ export default async function Footer() {
           </div>
         </div>
       </div>
-      <div className="bg-accent text-sm font-semibold text-white">
-        <div className="wrap flex flex-wrap items-center justify-between gap-x-4 gap-y-3 py-4">
-          <span>© {year} {site.name}. All rights reserved.</span>
+      <div className="footer-legal border-t border-line-dark bg-ink text-xs sm:text-sm text-muted-dark">
+        <div className="wrap flex flex-col sm:flex-row sm:flex-wrap items-center justify-between gap-x-4 gap-y-0 py-2 sm:py-4">
+          <span>© {year} <span className="sm:hidden">Winners Chapel Nashville</span><span className="hidden sm:inline">{site.name}. All rights reserved.</span></span>
           <div className="flex gap-6">
             <Link href="/privacy" className="inline-flex min-h-10 items-center text-white no-underline hover:underline hover:underline-offset-[3px]">Privacy</Link>
             <Link href="/contact" className="inline-flex min-h-10 items-center text-white no-underline hover:underline hover:underline-offset-[3px]">Contact</Link>
-            <Link href="/admin" className="inline-flex min-h-10 items-center text-white/35 no-underline transition-colors hover:text-white hover:underline hover:underline-offset-[3px] focus-visible:text-white" aria-label="Staff login">Staff</Link>
+            <Link href="/admin" className="inline-flex min-h-10 items-center text-muted-dark no-underline transition-colors hover:text-white hover:underline hover:underline-offset-[3px] focus-visible:text-white" aria-label="Staff login">Staff</Link>
           </div>
         </div>
       </div>
