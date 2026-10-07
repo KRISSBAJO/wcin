@@ -1,5 +1,6 @@
 import { getSettings } from '@/lib/content';
-import { BookOpen, Clapperboard, HandHeart, Images, Megaphone, Radio, Save, Trash2, Upload } from 'lucide-react';
+import { requireManager } from '@/lib/auth';
+import { BookOpen, Clapperboard, HandHeart, Images, Megaphone, PlaySquare, Radio, Save, Trash2, Upload } from 'lucide-react';
 import { removeHeroVideo, removeSitePhoto, saveSettings, uploadHeroPoster, uploadHeroVideo, uploadSitePhoto } from '../../actions';
 import { PHOTO_SLOTS, type PhotoSlot } from '@/lib/photos';
 import { Field, Flash, Panel, actions, btnDanger, btnPrimary, fields, input, PageHeader } from '@/components/admin/ui';
@@ -7,6 +8,7 @@ import { Field, Flash, Panel, actions, btnDanger, btnPrimary, fields, input, Pag
 export const metadata = { title: 'Settings' };
 
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string }> }) {
+  await requireManager();
   const [sp, s] = await Promise.all([searchParams, getSettings(true)]);
   return (
     <>
@@ -34,6 +36,13 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             <Field id="focus_scripture" label="Scripture"><input id="focus_scripture" name="focus_scripture" maxLength={80} defaultValue={s.focus_scripture} className={input} /></Field>
             <Field id="focus_text" label="Declaration" wide><input id="focus_text" name="focus_text" maxLength={300} defaultValue={s.focus_text} className={input} /></Field>
             <Field id="focus_pdf" label="PDF link" wide><input id="focus_pdf" name="focus_pdf" type="url" maxLength={500} defaultValue={s.focus_pdf} className={input} /></Field>
+          </div>
+        </Panel>
+        <Panel icon={PlaySquare} title="YouTube">
+          <p className="text-[13px] text-muted">Where "Sync from YouTube" on the Messages page pulls videos from: a channel (its Videos tab) or a playlist link. Each synced video becomes a message with the video&apos;s title, date and a short description; the thumbnail comes from YouTube.</p>
+          <div className={fields}>
+            <Field id="youtube_source" label="Channel or playlist" hint="For example https://www.youtube.com/@lfcww/videos, or a playlist link such as the channel's sermons playlist."><input id="youtube_source" name="youtube_source" maxLength={500} defaultValue={s.youtube_source} className={input} /></Field>
+            <Field id="youtube_speaker" label="Speaker to list for synced videos"><input id="youtube_speaker" name="youtube_speaker" maxLength={120} defaultValue={s.youtube_speaker} className={input} /></Field>
           </div>
         </Panel>
         <Panel icon={Radio} title="Live stream">

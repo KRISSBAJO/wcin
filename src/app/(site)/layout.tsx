@@ -1,6 +1,7 @@
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Analytics from '@/components/Analytics';
+import Motion from '@/components/Motion';
 import { site } from '@/data/site';
 import { getAnnouncement } from '@/lib/content';
 
@@ -22,19 +23,22 @@ const churchSchema = {
     postalCode: site.address.zip,
     addressCountry: 'US',
   },
-  sameAs: [site.social.facebook, site.social.instagram, site.social.youtube],
+  sameAs: [site.social.facebook, site.social.instagram, site.social.youtube].filter(Boolean),
 };
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const announcement = await getAnnouncement();
   return (
     <>
+      {/* Marks the page as scripted before the first paint, so reveal styles never flash. */}
+      <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('has-js')" }} />
       <a href="#main" className="absolute left-4 -top-16 z-50 bg-ink px-4 py-2.5 text-white no-underline focus:top-4">Skip to content</a>
       <Header announcement={announcement} />
       <main id="main">{children}</main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(churchSchema) }} />
       <Analytics />
+      <Motion />
     </>
   );
 }

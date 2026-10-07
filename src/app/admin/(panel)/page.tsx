@@ -6,7 +6,8 @@ import { centralToIso, longDate, monthDay, parseClock, todayCentral, upcomingDat
 import { notifyConfigured } from '@/lib/notify';
 import { openaiConfigured } from '@/lib/openai';
 import { textProvider } from '@/lib/llm';
-import { Empty, formIcons } from '@/components/admin/ui';
+import { Empty, Flash, formIcons } from '@/components/admin/ui';
+import { currentUser } from '@/lib/auth';
 import {
   ArrowRight, Calendar, CalendarPlus, Check, Clock, ExternalLink, Image as ImageIcon, ImagePlus, Inbox as InboxIcon, ListPlus, Images, Sparkles, Mail, Clapperboard, UserRound,
   type LucideIcon,
@@ -51,7 +52,8 @@ function greeting(): string {
   return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string }> }) {
+  const [sp, me] = await Promise.all([searchParams, currentUser()]);
   const today = todayCentral();
   const [newSubs, openSubs, upcomingEvents, recent, nextEvents, services, slides, panels, settings, ministriesWithPhoto, ministriesTotal, pastor] = await Promise.all([
     count("SELECT COUNT(*) AS n FROM submissions WHERE status = 'new'"),
@@ -111,7 +113,7 @@ export default async function DashboardPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
           <span className="text-[13px] font-light text-muted">{dateLine}</span>
-          <h1 className="text-[26px] font-medium text-ink">{greeting()}, Pastor Chris</h1>
+          <h1 className="text-[26px] font-medium text-ink">{greeting()}, {(me?.name ?? 'there').split(' ').slice(0, 2).join(' ')}</h1>
           <p className="text-[14px] font-light text-muted">Here is what is happening on the website right now.</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -120,6 +122,8 @@ export default async function DashboardPage() {
           <Link href="/admin/messages/new" className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-line bg-white px-4 text-[14px] font-medium text-ink no-underline transition-colors hover:border-ink"><ListPlus size={16} aria-hidden="true" />Add a message</Link>
         </div>
       </div>
+
+      <Flash ok={sp.ok} error={sp.error} />
 
       {/* Numbers */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

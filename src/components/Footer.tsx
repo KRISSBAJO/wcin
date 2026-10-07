@@ -23,7 +23,7 @@ export default async function Footer() {
                 ['facebook', site.social.facebook, 'Facebook'],
                 ['instagram', site.social.instagram, 'Instagram'],
                 ['youtube', site.social.youtube, 'YouTube'],
-              ].map(([icon, href, label]) => (
+              ].filter(([, href]) => Boolean(href)).map(([icon, href, label]) => (
                 <a key={icon} href={href} aria-label={label} rel="noopener" target="_blank" className="flex h-11 w-11 items-center justify-center border border-line-dark text-white hover:border-white hover:text-white">
                   <Icon name={icon as 'facebook'} size={18} />
                 </a>

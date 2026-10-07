@@ -1,4 +1,6 @@
-import { ExternalLink, PlaySquare } from 'lucide-react';
+import { ExternalLink, PlaySquare, RefreshCw } from 'lucide-react';
+import { syncYouTube } from '../../actions';
+import { btnOutline } from '@/components/admin/ui';
 import { getAllMessages } from '@/lib/content';
 import { longDate } from '@/lib/dates';
 import { listState, sortRows, textMatch } from '@/lib/list';
@@ -15,6 +17,7 @@ export default async function MessagesAdminPage({ searchParams }: { searchParams
   return (
     <>
       <PageHeader icon="messages" title="Messages" description="Sermons with their YouTube links. Published messages appear on the Watch page and the homepage.">
+        <form action={syncYouTube}><button className={btnOutline} title="Pull the latest videos from the YouTube source set under Settings"><RefreshCw size={16} aria-hidden="true" />Sync from YouTube</button></form>
         <AddLink href="/admin/messages/new" label="Add a message" />
       </PageHeader>
       <Flash ok={sp.ok} error={sp.error} />

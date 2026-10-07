@@ -3,7 +3,11 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { checkPassword } from '@/lib/session';
-import { clearSession, issueSession, requireAdmin } from '@/lib/auth';
+import { clearSession, issueSession, requireAdmin, requireManager, siteOrigin } from '@/lib/auth';
+import { MIN_PASSWORD, activeAdminCount, countUsers, createInvitedUser, findByEmail, findByToken, getUser, getUserRow, hashPassword, isRole, issueToken, normalizeEmail, setPassword, touchLogin, verifyPassword, type Role } from '@/lib/users';
+import { sendMail } from '@/lib/notify';
+import { durationToLength, listVideos, sourceUrl, summarise, tidyTitle, videoDetails } from '@/lib/youtube';
+import { youtubeId } from '@/lib/dates';
 import { run, nowIso } from '@/lib/db';
 import { clearServicesCache, expiryFor, getServices, saveSettings as persistSettings } from '@/lib/content';
 import { SETTING_KEYS } from '@/lib/schema';
@@ -45,19 +49,168 @@ function slideKeep(data: FormData): Record<string, string> {
 
 // ---- Auth ----
 
+const LOGIN_DELAY = 350; // slows down guessing
+
 export async function login(formData: FormData) {
+  const email = normalizeEmail(str(formData, 'email', 200));
   const password = str(formData, 'password', 200);
   const nextParam = str(formData, 'next', 300);
   const next = nextParam.startsWith('/admin') ? nextParam : '/admin';
-  await new Promise((r) => setTimeout(r, 300)); // slow down guessing
-  if (!checkPassword(password)) redirect(`/admin/login?error=1&next=${encodeURIComponent(next)}`);
-  await issueSession();
+  await new Promise((r) => setTimeout(r, LOGIN_DELAY));
+  const user = email ? await findByEmail(email) : null;
+  const ok = user && user.active && user.password_hash && (await verifyPassword(password, user.password_hash));
+  if (!ok) redirect(`/admin/login?error=1&next=${encodeURIComponent(next)}`);
+  await touchLogin(user!.id);
+  await issueSession(user!.id, user!.role);
   redirect(next);
+}
+
+/** First run only: turns the .env admin password into the first real admin account. */
+export async function createFirstAdmin(formData: FormData) {
+  if ((await countUsers()) > 0) redirect('/admin/login');
+  const name = str(formData, 'name', 120);
+  const email = normalizeEmail(str(formData, 'email', 200));
+  const password = str(formData, 'password', 200);
+  const setup = str(formData, 'setup', 200);
+  await new Promise((r) => setTimeout(r, LOGIN_DELAY));
+  const fail = (msg: string) => redirect(`/admin/login?setup_error=${encodeURIComponent(msg)}`);
+  if (!checkPassword(setup)) fail('The current admin password from .env is not right.');
+  if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fail('Give your name and a valid email address.');
+  if (password.length < MIN_PASSWORD) fail(`Choose a password of at least ${MIN_PASSWORD} characters.`);
+  await run(
+    'INSERT INTO users (name, email, role, password_hash, active, token_hash, token_purpose, token_expires, last_login_at, created_at) VALUES (?, ?, ?, ?, 1, ?, ?, ?, ?, ?)',
+    [name, email, 'admin', await hashPassword(password), '', '', '', nowIso(), nowIso()],
+  );
+  const user = await findByEmail(email);
+  await issueSession(user!.id, 'admin');
+  redirect('/admin?ok=' + encodeURIComponent('Welcome. Your admin account is set up; the .env password is no longer used to sign in.'));
 }
 
 export async function logout() {
   await clearSession();
   redirect('/admin/login');
+}
+
+export async function requestReset(formData: FormData) {
+  const email = normalizeEmail(str(formData, 'email', 200));
+  await new Promise((r) => setTimeout(r, LOGIN_DELAY));
+  const user = email ? await findByEmail(email) : null;
+  if (user && user.active && user.password_hash) {
+    const token = await issueToken(user.id, 'reset', 1);
+    const link = `${await siteOrigin()}/admin/reset/${token}`;
+    const sent = await sendMail(user.email, 'Reset your WCI Nashville admin password', `Hello ${user.name},\n\nUse this link within the next hour to choose a new password:\n${link}\n\nIf you did not ask for this, you can ignore it.`);
+    if (!sent) console.error('[users] reset link (mail not configured):', link);
+  }
+  // Same answer whether or not the address exists, so the form cannot be used to list accounts.
+  redirect('/admin/forgot?sent=1');
+}
+
+export async function resetPassword(formData: FormData) {
+  const token = str(formData, 'token', 200);
+  const password = str(formData, 'password', 200);
+  const confirm = str(formData, 'confirm', 200);
+  const user = await findByToken(token, 'reset');
+  if (!user) redirect('/admin/forgot?expired=1');
+  if (password.length < MIN_PASSWORD) redirect(`/admin/reset/${token}?error=${encodeURIComponent(`Choose a password of at least ${MIN_PASSWORD} characters.`)}`);
+  if (password !== confirm) redirect(`/admin/reset/${token}?error=${encodeURIComponent('The two passwords do not match.')}`);
+  await setPassword(user!.id, password);
+  await touchLogin(user!.id);
+  await issueSession(user!.id, user!.role);
+  redirect('/admin?ok=' + encodeURIComponent('Your password is updated and you are signed in.'));
+}
+
+export async function acceptInvite(formData: FormData) {
+  const token = str(formData, 'token', 200);
+  const password = str(formData, 'password', 200);
+  const confirm = str(formData, 'confirm', 200);
+  const user = await findByToken(token, 'invite');
+  if (!user) redirect('/admin/login?error=invite');
+  if (password.length < MIN_PASSWORD) redirect(`/admin/invite/${token}?error=${encodeURIComponent(`Choose a password of at least ${MIN_PASSWORD} characters.`)}`);
+  if (password !== confirm) redirect(`/admin/invite/${token}?error=${encodeURIComponent('The two passwords do not match.')}`);
+  await setPassword(user!.id, password);
+  await touchLogin(user!.id);
+  await issueSession(user!.id, user!.role);
+  redirect('/admin?ok=' + encodeURIComponent(`Welcome, ${user!.name}. Your account is ready.`));
+}
+
+// ---- Users (admins only) ----
+
+async function inviteMail(name: string, email: string, token: string, invitedBy: string): Promise<{ sent: boolean; link: string }> {
+  const link = `${await siteOrigin()}/admin/invite/${token}`;
+  const sent = await sendMail(email, 'You are invited to manage the WCI Nashville website', `Hello ${name},\n\n${invitedBy} has given you access to the Winners Chapel International Nashville website admin.\n\nChoose your password here (the link works for 7 days):\n${link}\n\nAfter that, sign in at ${await siteOrigin()}/admin/login with this email address.`);
+  return { sent, link };
+}
+
+export async function addUser(formData: FormData) {
+  const me = await requireManager();
+  const name = str(formData, 'name', 120);
+  const email = normalizeEmail(str(formData, 'email', 200));
+  const role = str(formData, 'role', 20);
+  if (!name) back('/admin/users/new', { error: 'Name is required.' });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) back('/admin/users/new', { error: 'That email address does not look right.' });
+  if (!isRole(role)) back('/admin/users/new', { error: 'Pick a role.' });
+  if (await findByEmail(email)) back('/admin/users/new', { error: `${email} already has an account.` });
+  const { id, token } = await createInvitedUser(name, email, role as Role);
+  const { sent, link } = await inviteMail(name, email, token, me.name);
+  back(`/admin/users/${id}`, sent
+    ? { ok: `${name} is invited. An email with the link to set a password went to ${email}.` }
+    : { ok: `${name} is added. Email is not set up on the server, so send them this link yourself: ${link}` });
+}
+
+export async function updateUser(id: number, formData: FormData) {
+  const me = await requireManager();
+  const target = await getUser(id);
+  if (!target) redirect('/admin/users');
+  const name = str(formData, 'name', 120);
+  const role = str(formData, 'role', 20);
+  const active = bool(formData, 'active');
+  if (!name) back(`/admin/users/${id}`, { error: 'Name is required.' });
+  if (!isRole(role)) back(`/admin/users/${id}`, { error: 'Pick a role.' });
+  // Never lock everyone out: the last working admin stays an active admin.
+  const losingAdmin = target.role === 'admin' && target.has_password && (role !== 'admin' || !active);
+  if (losingAdmin && (await activeAdminCount(id)) === 0) back(`/admin/users/${id}`, { error: 'This is the only admin who can sign in. Make someone else an admin first.' });
+  await run('UPDATE users SET name = ?, role = ?, active = ? WHERE id = ?', [name, role, active, id]);
+  if (id === me.id) await issueSession(me.id, role as Role);
+  back('/admin/users', { ok: `${name} saved.` });
+}
+
+export async function resendInvite(id: number) {
+  const me = await requireManager();
+  const target = await getUser(id);
+  if (!target) redirect('/admin/users');
+  if (target.has_password) back(`/admin/users/${id}`, { error: `${target.name} already has a password. They can use "Forgot password" on the sign-in page.` });
+  const token = await issueToken(id, 'invite', 7 * 24);
+  const { sent, link } = await inviteMail(target.name, target.email, token, me.name);
+  back(`/admin/users/${id}`, sent ? { ok: `A fresh invite went to ${target.email}.` } : { ok: `Email is not set up on the server. Send ${target.name} this link: ${link}` });
+}
+
+export async function deleteUser(id: number) {
+  const me = await requireManager();
+  if (id === me.id) back(`/admin/users/${id}`, { error: 'You cannot delete your own account while signed in to it.' });
+  const target = await getUser(id);
+  if (!target) redirect('/admin/users');
+  if (target.role === 'admin' && target.has_password && (await activeAdminCount(id)) === 0) back(`/admin/users/${id}`, { error: 'This is the only admin who can sign in. Make someone else an admin first.' });
+  await run('DELETE FROM users WHERE id = ?', [id]);
+  back('/admin/users', { ok: `${target.name} removed.` });
+}
+
+/** The signed-in person's own name and password. */
+export async function updateAccount(formData: FormData) {
+  const me = await requireAdmin();
+  const name = str(formData, 'name', 120);
+  const current = str(formData, 'current', 200);
+  const password = str(formData, 'password', 200);
+  const confirm = str(formData, 'confirm', 200);
+  if (!name) back('/admin/account', { error: 'Name is required.' });
+  if (password || confirm) {
+    const row = await getUserRow(me.id);
+    if (!row || !(await verifyPassword(current, row.password_hash))) back('/admin/account', { error: 'Your current password is not right.' });
+    if (password.length < MIN_PASSWORD) back('/admin/account', { error: `Choose a password of at least ${MIN_PASSWORD} characters.` });
+    if (password !== confirm) back('/admin/account', { error: 'The two new passwords do not match.' });
+    await setPassword(me.id, password);
+  }
+  await run('UPDATE users SET name = ? WHERE id = ?', [name, me.id]);
+  back('/admin/account', { ok: password ? 'Name and password saved.' : 'Name saved.' });
 }
 
 // ---- Submissions ----
@@ -72,6 +225,45 @@ export async function deleteSubmission(id: number) {
   await requireAdmin();
   await run('DELETE FROM submissions WHERE id = ?', [id]);
   back('/admin/inbox', { ok: 'Submission deleted.' });
+}
+
+// ---- YouTube ----
+
+/**
+ * Pulls the latest videos from the channel or playlist set under Settings into Messages.
+ * Videos already present are left alone; the four starter placeholders are removed the first time.
+ */
+export async function syncYouTube() {
+  await requireAdmin();
+  const settings = await getSettingsFresh();
+  const url = sourceUrl(settings.youtube_source);
+  let listing;
+  try {
+    listing = await listVideos(url, 12);
+  } catch (err) {
+    back('/admin/messages', { error: `Could not read YouTube: ${(err as Error).message}` });
+    return;
+  }
+  if (listing.length === 0) back('/admin/messages', { error: 'No videos found at that address. Check the YouTube source under Settings.' });
+  const existing = await all<{ id: number; video_url: string }>('SELECT id, video_url FROM messages');
+  const have = new Set(existing.map((m) => youtubeId(m.video_url)).filter(Boolean));
+  let added = 0;
+  for (const v of listing) {
+    if (have.has(v.id)) continue;
+    let details;
+    try { details = await videoDetails(v.id); } catch { continue; }
+    if (!details.uploadDate) continue;
+    await run(
+      'INSERT INTO messages (title, speaker, preached_on, length, video_url, description, points, published, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)',
+      [tidyTitle(details.title || v.title), settings.youtube_speaker, details.uploadDate, durationToLength(v.duration), `https://www.youtube.com/watch?v=${v.id}`, summarise(details.description), '', nowIso()],
+    );
+    added++;
+  }
+  // The starter entries shipped with the site point at youtube.com itself; real videos replace them.
+  const placeholders = existing.filter((m) => /^https?:\/\/(www\.)?youtube\.com\/?$/.test(m.video_url));
+  for (const m of placeholders) await run('DELETE FROM messages WHERE id = ?', [m.id]);
+  refreshSite();
+  back('/admin/messages', { ok: `${added} new video${added === 1 ? '' : 's'} added from YouTube${placeholders.length ? `, ${placeholders.length} starter placeholder${placeholders.length === 1 ? '' : 's'} removed` : ''}. Hide any you do not want on the site from the list below.` });
 }
 
 // ---- Hero slides ----
@@ -589,7 +781,7 @@ export async function deleteLeader(id: number) {
 // ---- Settings ----
 
 export async function saveSettings(formData: FormData) {
-  await requireAdmin();
+  await requireManager();
   const patch: Record<string, string> = {};
   // Only the fields this form carries; the hero video has its own form and must not be blanked here.
   for (const key of SETTING_KEYS) if (formData.has(key)) patch[key] = str(formData, key, key === 'welcome_text' ? 1500 : 500);
@@ -607,7 +799,7 @@ export async function saveSettings(formData: FormData) {
 
 /** Homepage hero background: a short, silent, looping clip. Replaces the previous one. */
 export async function uploadHeroVideo(formData: FormData) {
-  await requireAdmin();
+  await requireManager();
   const file = formData.get('video');
   if (!(file instanceof File) || file.size === 0) back('/admin/settings', { error: 'Choose a video file first.' });
   let stored: { key: string; url: string };
@@ -625,7 +817,7 @@ export async function uploadHeroVideo(formData: FormData) {
 }
 
 export async function uploadSitePhoto(slot: PhotoSlot, formData: FormData) {
-  await requireAdmin();
+  await requireManager();
   if (!(slot in PHOTO_SLOTS)) redirect('/admin/settings');
   const file = formData.get('photo');
   if (!(file instanceof File) || file.size === 0) back('/admin/settings', { error: 'Choose an image first.' });
@@ -644,7 +836,7 @@ export async function uploadSitePhoto(slot: PhotoSlot, formData: FormData) {
 }
 
 export async function removeSitePhoto(slot: PhotoSlot) {
-  await requireAdmin();
+  await requireManager();
   if (!(slot in PHOTO_SLOTS)) redirect('/admin/settings');
   const previous = (await getSettingsFresh())[`photo_${slot}_key`];
   await persistSettings({ [`photo_${slot}_url`]: '', [`photo_${slot}_key`]: '' });
@@ -655,7 +847,7 @@ export async function removeSitePhoto(slot: PhotoSlot) {
 
 /** A still frame shown the instant the page opens, before the video has loaded. */
 export async function uploadHeroPoster(formData: FormData) {
-  await requireAdmin();
+  await requireManager();
   const file = formData.get('poster');
   if (!(file instanceof File) || file.size === 0) back('/admin/settings', { error: 'Choose an image first.' });
   let stored: { key: string; url: string };
@@ -673,7 +865,7 @@ export async function uploadHeroPoster(formData: FormData) {
 }
 
 export async function removeHeroVideo() {
-  await requireAdmin();
+  await requireManager();
   const current = await getSettingsFresh();
   const previous = current.hero_video_key;
   await persistSettings({ hero_video_url: '', hero_video_key: '', hero_video_poster_url: '', hero_video_poster_key: '' });

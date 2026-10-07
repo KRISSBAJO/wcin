@@ -15,7 +15,14 @@ interface Props {
 
 export default function Header({ announcement }: Props) {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 80);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
   useEffect(() => setOpen(false), [pathname]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
@@ -37,11 +44,11 @@ export default function Header({ announcement }: Props) {
           </div>
         </div>
       )}
-      <header className="relative z-20 border-b border-line bg-paper">
-        <div className="wrap flex items-center justify-between gap-6 py-4">
+      <header className={`site-header sticky top-0 z-20 border-b border-line bg-paper/95 backdrop-blur ${scrolled ? 'is-scrolled' : ''}`}>
+        <div className={`header-row wrap flex items-center justify-between gap-6 ${scrolled ? 'py-2' : 'py-4'}`}>
           <Link href="/" className="flex min-w-0 items-center gap-3 no-underline text-ink hover:text-ink" aria-label={`${site.name} home`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="" width={56} height={63} className="h-12 w-auto shrink-0 lg:h-14" />
+            <img src="/logo.png" alt="" width={56} height={63} className={`header-logo w-auto shrink-0 ${scrolled ? 'h-10 lg:h-11' : 'h-12 lg:h-14'}`} />
             <span className="flex min-w-0 flex-col leading-[1.05]">
               <span className="font-display text-xl tracking-[0.03em] whitespace-nowrap lg:text-2xl">Winners Chapel International</span>
               <span className="hidden text-[11px] font-semibold uppercase tracking-[0.16em] text-muted whitespace-nowrap min-[400px]:block lg:text-xs">Nashville · {site.parent}</span>

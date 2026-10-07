@@ -1,5 +1,18 @@
 // Database schema. Each statement is safe to run more than once.
 export const SCHEMA: string[] = [
+  `CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    role TEXT NOT NULL DEFAULT 'editor',
+    password_hash TEXT NOT NULL DEFAULT '',
+    active INTEGER NOT NULL DEFAULT 1,
+    token_hash TEXT NOT NULL DEFAULT '',
+    token_purpose TEXT NOT NULL DEFAULT '',
+    token_expires TEXT NOT NULL DEFAULT '',
+    last_login_at TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL
+  )`,
   `CREATE TABLE IF NOT EXISTS submissions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     type TEXT NOT NULL,
@@ -151,6 +164,8 @@ export const SETTING_KEYS = [
   'photo_about_key',
   'photo_nations_url',
   'photo_nations_key',
+  'youtube_source',
+  'youtube_speaker',
 ] as const;
 
 export type SettingKey = (typeof SETTING_KEYS)[number];

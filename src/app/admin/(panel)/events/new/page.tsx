@@ -24,7 +24,7 @@ export default async function NewEventPage({ searchParams }: { searchParams: Pro
         />
         <form action={addEvent} className={fields}>
           <Field id="title" label="Title" wide><input id="title" name="title" required maxLength={200} className={input} /></Field>
-          <Field id="detail" label="Detail (day, time, place)" wide><input id="detail" name="detail" maxLength={500} placeholder="Sunday · 8:00 AM and 10:30 AM · Main sanctuary" className={input} /></Field>
+          <Field id="detail" label="Detail (day, time, place)" wide><input id="detail" name="detail" maxLength={500} placeholder="Sunday · 9:00 AM · Main sanctuary" className={input} /></Field>
           <Field id="starts_on" label="Start date"><input id="starts_on" name="starts_on" type="date" required min={todayCentral()} className={input} /></Field>
           <Field id="ends_on" label="End date (optional)"><input id="ends_on" name="ends_on" type="date" className={input} /></Field>
           <Field id="photo" label="Flyer or photo (optional)" hint="Square or portrait works best. Shown on the Events page and the homepage card." wide><input id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" className={input} /></Field>

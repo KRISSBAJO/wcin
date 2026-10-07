@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "next dev -p 4321 -H 127.0.0.1",
     "build": "next build",
-    "start": "node --env-file-if-exists=.env node_modules/next/dist/bin/next start -p 4321",
+    "start": "node --env-file-if-exists=.env node_modules/next/dist/bin/next start -H 0.0.0.0",
     "typecheck": "tsc --noEmit",
     "db:migrate": "node --env-file-if-exists=.env scripts/migrate.ts",
     "db:seed": "node --env-file-if-exists=.env scripts/seed.ts"
@@ -32,5 +32,9 @@
     "@types/react-dom": "^19.1.0",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.8.0"
-  }
+  },
+  "engines": {
+    "node": ">=22.19.0 <23"
+  },
+  "packageManager": "pnpm@10.28.2"
 }

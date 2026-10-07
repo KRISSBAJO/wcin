@@ -32,13 +32,15 @@ export default async function AboutPage() {
 
       <section className="section" id="mandate">
         <div className="wrap grid grid-cols-12 items-start gap-x-6 gap-y-10">
+          {settings.photo_mandate_url && (
+            <figure className="col-span-12 overflow-hidden rounded-sm bg-[radial-gradient(ellipse_at_center,_#9c1119_0%,_#6e0a10_60%,_#4a070b_100%)] shadow-[0_28px_56px_-28px_rgba(20,20,22,0.55)]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={settings.photo_mandate_url} alt="The Liberation Mandate" className="aspect-[2000/750] w-full object-contain" loading="lazy" />
+            </figure>
+          )}
           <div className="col-span-12 flex flex-col gap-5 lg:col-span-5">
             <span className="eyebrow">The mandate</span>
             <h2 className="h-section">Liberating people through the word of faith</h2>
-            {settings.photo_mandate_url && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={settings.photo_mandate_url} alt="" className="mt-2 aspect-[4/3] w-full rounded-sm bg-paper-2 object-cover" loading="lazy" />
-            )}
           </div>
           <div className="col-span-12 flex flex-col gap-6 lg:col-span-7">
             <blockquote className="border-l-4 border-accent pl-5 text-xl italic leading-[1.45] lg:text-2xl">“The hour has come to liberate the world from all oppressions of the devil through the preaching of the word of faith, and I am sending you to undertake this task.”</blockquote>

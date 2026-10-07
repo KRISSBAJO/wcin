@@ -35,16 +35,16 @@ export function notifyConfigured(): boolean {
   return Boolean(from() && env('NOTIFY_TO')) && providerChain().length > 0;
 }
 
-async function viaHttp(url: string, key: string, subject: string, text: string) {
+async function viaHttp(url: string, key: string, to: string, subject: string, text: string) {
   const res = await fetch(url, {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: from(), to: env('NOTIFY_TO'), subject, text }),
+    body: JSON.stringify({ from: from(), to, subject, text }),
   });
   if (!res.ok) throw new Error(`${res.status} ${await res.text().catch(() => '')}`);
 }
 
-async function viaSmtp(subject: string, text: string) {
+async function viaSmtp(to: string, subject: string, text: string) {
   const nodemailer = await import('nodemailer');
   const transport = nodemailer.createTransport({
     host: env('SMTP_HOST'),
@@ -52,20 +52,39 @@ async function viaSmtp(subject: string, text: string) {
     secure: env('SMTP_SECURE') === 'true',
     auth: env('SMTP_USER') ? { user: env('SMTP_USER'), pass: env('SMTP_PASSWORD') } : undefined,
   });
-  await transport.sendMail({ from: from(), to: env('NOTIFY_TO'), subject, text });
+  await transport.sendMail({ from: from(), to, subject, text });
 }
 
-async function send(p: Provider, subject: string, text: string) {
-  if (p === 'resend') return viaHttp('https://api.resend.com/emails', env('RESEND_API_KEY'), subject, text);
-  if (p === 'relykit') return viaHttp(env('RELYKIT_API_URL') || 'https://api.relykit.com/emails', env('RELYKIT_API_KEY'), subject, text);
-  return viaSmtp(subject, text);
+async function send(p: Provider, to: string, subject: string, text: string) {
+  if (p === 'resend') return viaHttp('https://api.resend.com/emails', env('RESEND_API_KEY'), to, subject, text);
+  if (p === 'relykit') return viaHttp(env('RELYKIT_API_URL') || 'https://api.relykit.com/emails', env('RELYKIT_API_KEY'), to, subject, text);
+  return viaSmtp(to, subject, text);
+}
+
+/** Can the app send any email at all (a sender and at least one provider)? */
+export function mailConfigured(): boolean {
+  return Boolean(from()) && providerChain().length > 0;
+}
+
+/** Sends one email to one address, trying each configured provider. Returns false if none worked. */
+export async function sendMail(to: string, subject: string, text: string): Promise<boolean> {
+  if (!mailConfigured()) return false;
+  for (const p of providerChain()) {
+    try {
+      await send(p, to, subject, text);
+      return true;
+    } catch (err) {
+      console.error(`[mail] ${p} failed, trying next:`, (err as Error).message);
+    }
+  }
+  return false;
 }
 
 export async function notifyOffice(subject: string, text: string): Promise<void> {
   if (!notifyConfigured()) return;
   for (const p of providerChain()) {
     try {
-      await send(p, subject, text);
+      await send(p, env('NOTIFY_TO'), subject, text);
       return;
     } catch (err) {
       console.error(`[notify] ${p} failed, trying next:`, (err as Error).message);

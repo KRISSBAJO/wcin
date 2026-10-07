@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-scroll-behavior="smooth" className={`${bebas.variable} ${source.variable} ${jost.variable}`}>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning className={`${bebas.variable} ${source.variable} ${jost.variable}`}>
       <body>
         <meta name="theme-color" content="#b3121f" />
         {children}

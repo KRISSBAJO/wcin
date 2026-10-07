@@ -1,3 +1,4 @@
+import { remoteContent, usesRemoteContent } from './remote-content';
 // Reads public content from the database, falling back to the defaults in src/data/site.ts
 // when a table is empty (so the site works before anything is entered in the admin).
 import { all, one, run, nowIso } from './db';
@@ -95,6 +96,8 @@ const DEFAULT_SETTINGS: Settings = {
   photo_mandate_url: '', photo_mandate_key: '',
   photo_about_url: '', photo_about_key: '',
   photo_nations_url: '', photo_nations_key: '',
+  youtube_source: `${site.social.youtube}/videos`,
+  youtube_speaker: site.founder,
   welcome_title: 'Welcome home',
   welcome_text:
     'We are so glad you found us. Winners Chapel International Nashville is a family of believers built on the word of faith, and whoever you are and wherever you are coming from, there is a seat for you here.\n\nEvery service is packed with lively worship, prayer and a faith-building message from the Bible. Come as you are, bring your family, and expect God to meet you. We look forward to welcoming you in person this Sunday.',
@@ -105,6 +108,7 @@ let settingsCache: { at: number; value: Settings } | null = null;
 const SETTINGS_TTL_MS = 60_000;
 
 export async function getSettings(fresh = false): Promise<Settings> {
+  if (usesRemoteContent()) return remoteContent<Settings>('settings');
   if (!fresh && settingsCache && Date.now() - settingsCache.at < SETTINGS_TTL_MS) return settingsCache.value;
   const value: Settings = { ...DEFAULT_SETTINGS };
   try {
@@ -137,6 +141,7 @@ function fallbackEvents(): EventRow[] {
 
 /** Published events from today onward (or events that have not ended yet). */
 export async function getUpcomingEvents(limit = 50): Promise<EventRow[]> {
+  if (usesRemoteContent()) return remoteContent<EventRow[]>('events', limit);
   const today = todayCentral();
   try {
     const rows = await all<EventRow>(
@@ -163,6 +168,7 @@ function fallbackMessages(): MessageRow[] {
 }
 
 export async function getRecentMessages(limit = 8): Promise<MessageRow[]> {
+  if (usesRemoteContent()) return remoteContent<MessageRow[]>('messages', limit);
   try {
     const rows = await all<MessageRow>('SELECT * FROM messages WHERE published = 1 ORDER BY preached_on DESC LIMIT ?', [limit]);
     if (rows.length === 0) {
@@ -218,6 +224,7 @@ let servicesCache: { at: number; value: Service[] } | null = null;
 
 /** Active services in display order. Cached for a minute like settings. */
 export async function getServices(fresh = false): Promise<Service[]> {
+  if (usesRemoteContent()) return remoteContent<Service[]>('services');
   if (!fresh && servicesCache && Date.now() - servicesCache.at < SETTINGS_TTL_MS) return servicesCache.value;
   let value: Service[];
   try {
@@ -259,6 +266,7 @@ export async function getLiveSlides(): Promise<SlideRow[]> {
  * or the day's fallback flyer, with the day's service card underneath.
  */
 export async function getHeroPanels(): Promise<HeroPanelData[]> {
+  if (usesRemoteContent()) return remoteContent<HeroPanelData[]>('heroPanels');
   const [services, specials] = await Promise.all([getServices(), getLiveSlides()]);
   return groupByDay(services).map((g) => {
     const special = specials.find((s) => s.service_day === g.day);
@@ -297,6 +305,7 @@ function shortTitle(headline: string): string {
  * text from Settings shows again. The nearest upcoming special wins when there are several.
  */
 export async function getAnnouncement(): Promise<Announcement> {
+  if (usesRemoteContent()) return remoteContent<Announcement>('announcement');
   const [settings, specials] = await Promise.all([getSettings(), getLiveSlides()]);
   const fallback: Announcement = { text: settings.announcement_text, linkText: settings.announcement_link_text, href: settings.announcement_href, auto: false };
   const next = specials.filter((s) => s.service_date).sort((a, b) => a.service_date.localeCompare(b.service_date))[0];
@@ -340,6 +349,7 @@ function fallbackMinistries(): MinistryRow[] {
 }
 
 export async function getMinistries(): Promise<MinistryRow[]> {
+  if (usesRemoteContent()) return remoteContent<MinistryRow[]>('ministries');
   try {
     const rows = await all<MinistryRow>('SELECT * FROM ministries WHERE active = 1 ORDER BY sort ASC, id ASC');
     if (rows.length === 0) {
@@ -378,6 +388,7 @@ function fallbackLeaders(): LeaderRow[] {
 }
 
 export async function getLeaders(): Promise<LeaderRow[]> {
+  if (usesRemoteContent()) return remoteContent<LeaderRow[]>('leaders');
   try {
     const rows = await all<LeaderRow>('SELECT * FROM leaders WHERE active = 1 ORDER BY sort ASC, id ASC');
     if (rows.length === 0) {

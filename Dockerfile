@@ -4,7 +4,7 @@ RUN corepack enable
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY . .
-RUN pnpm build
+RUN DOCKER_BUILD=1 pnpm build
 
 FROM node:22-alpine
 WORKDIR /app

@@ -18,7 +18,7 @@ export default async function WatchPage() {
   const embed = youtubeEmbedUrl(liveStreamUrl);
   return (
     <>
-      <PageHero eyebrow="Watch" title="Join us live" lead={`We stream both Sunday services, ${sunday.map((s) => s.time).join(' and ')} Central Time. Can't make it in person? You are still part of the family.`}>
+      <PageHero eyebrow="Watch" title="Join us live" lead={`We stream our Sunday service, ${sunday.map((s) => s.time).join(' and ')} Central Time. Can't make it in person? You are still part of the family.`}>
         <div className="flex flex-col gap-3 bg-white p-7 text-ink">
           <span className="eyebrow">Next live stream</span>
           <span className="font-display text-[44px] leading-none">Sunday {sunday[0]?.time ?? ''}</span>

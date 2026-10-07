@@ -22,7 +22,7 @@ const steps: { n: string; title: string; text: string; icon: LucideIcon }[] = [
 ];
 const faqs = [
   { q: 'What should I wear?', a: 'Whatever you are comfortable in. You will see suits and you will see jeans.' },
-  { q: 'Is there anything for my children?', a: 'Yes. Winners Kids runs in both Sunday services for ages 2 to 12, with trained, background-checked volunteers.' },
+  { q: 'Is there anything for my children?', a: 'Yes. Winners Kids runs in the Sunday service at 9:00 AM for ages 2 to 12, with trained, background-checked volunteers.' },
   { q: 'Will I be asked to give?', a: 'An offering is taken, but guests are never expected to give. Just enjoy the service.' },
   { q: 'How do I become a member?', a: "Join the Believers' Foundation Class, held monthly on a Saturday. Sign up at the First Timers' desk or online." },
 ];
@@ -75,7 +75,7 @@ export default async function VisitPage() {
           </Field>
           <Choices name="date" label="When do you plan to worship with us?" options={dateOptions} defaultValue={thisSunday} />
           {serviceOptions.length > 1 && <Choices name="service" label="Which Sunday service suits you?" options={serviceOptions} defaultValue={serviceOptions[0].value} />}
-          <Choices name="kids" label="Bringing any children?" hint="Winners Kids runs during both Sunday services." options={[{ value: 'None', label: 'No' }, { value: '1', label: '1' }, { value: '2', label: '2' }, { value: '3 or more', label: '3 or more' }]} defaultValue="None" />
+          <Choices name="kids" label="Bringing any children?" hint="Winners Kids runs during the Sunday service at 9:00 AM." options={[{ value: 'None', label: 'No' }, { value: '1', label: '1' }, { value: '2', label: '2' }, { value: '3 or more', label: '3 or more' }]} defaultValue="None" />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field id="v-email" label="Email" hint="So we can confirm and send directions.">
               <input id="v-email" name="email" type="email" autoComplete="email" required className="field-input" />
