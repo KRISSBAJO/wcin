@@ -29,17 +29,21 @@ export default function Header({ announcement }: Props) {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, []);
+  const mobileAnnouncement = announcement.text === site.announcement.text
+    ? 'Sunday · 9:00 AM'
+    : announcement.text;
   const linkCls = (href: string) =>
     `no-underline font-semibold whitespace-nowrap ${pathname === href ? 'text-accent xl:border-b-2 xl:border-accent xl:pb-0.5' : 'text-ink hover:text-accent'}`;
 
   return (
     <>
       {announcement.text && (
-        <div className="bg-accent text-white text-sm font-semibold uppercase tracking-[0.04em]">
-          <div className="wrap flex flex-wrap items-center justify-center gap-x-4 gap-y-1 py-2.5 text-center leading-[1.4]">
-            <span>{announcement.text}</span>
+        <div className="announcement-bar bg-accent text-white text-[11px] sm:text-sm font-semibold uppercase tracking-[0.02em] sm:tracking-[0.04em]">
+          <div className="wrap flex items-center justify-between sm:justify-center gap-3 sm:gap-4 py-2 sm:py-2.5 text-center leading-[1.4]">
+            <span className="min-w-0 truncate sm:hidden" title={announcement.text}>{mobileAnnouncement}</span>
+            <span className="hidden sm:inline">{announcement.text}</span>
             {announcement.linkText && announcement.href && (
-              <Link href={announcement.href} className="text-white underline underline-offset-[3px]">{announcement.linkText}</Link>
+              <Link href={announcement.href} className="shrink-0 whitespace-nowrap text-white underline underline-offset-[3px]">{announcement.linkText}</Link>
             )}
           </div>
         </div>
