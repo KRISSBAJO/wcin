@@ -1,3 +1,4 @@
+import DirectionsLink from '@/components/DirectionsLink';
 import type { Metadata } from 'next';
 import FormSplit from '@/components/FormSplit';
 import ServiceTimes from '@/components/ServiceTimes';
@@ -125,12 +126,12 @@ export default async function VisitPage() {
               <strong>{site.address.street}, {site.address.city}, {site.address.state} {site.address.zip}</strong>
               <span>From I-24, I-40 or I-65 take [EXIT]. The church is [LANDMARK DIRECTIONS]. Free on-site parking with overflow next door.</span>
               <span>Phone <a href={site.phoneHref}>{site.phone}</a> · <a href={`mailto:${site.email}`}>{site.email}</a></span>
-              <a href={site.mapLinkUrl} className="text-link" rel="noopener" target="_blank">Open in Google Maps <ExternalLink size={16} aria-hidden="true" /></a>
+              <DirectionsLink className="text-link">Get directions <ExternalLink size={16} aria-hidden="true" /></DirectionsLink>
             </div>
           </div>
           <div className="col-span-12 lg:col-span-7">
             {mapEmbedSrc() ? (
-              <iframe src={mapEmbedSrc()!} title="Map to the church" loading="lazy" allowFullScreen referrerPolicy="no-referrer-when-downgrade" className="aspect-[16/10] w-full border-0" />
+              <div className="relative w-full"><iframe src={mapEmbedSrc()!} title="Map to the church" loading="lazy" tabIndex={-1} aria-hidden="true" allowFullScreen referrerPolicy="no-referrer-when-downgrade" className="pointer-events-none aspect-[16/10] w-full border-0" /><DirectionsLink className="absolute inset-0 flex items-end justify-center rounded-lg pb-4 no-underline focus-visible:outline-offset-4"><span className="rounded-full bg-white px-5 py-3 text-sm font-bold text-accent shadow-lg">Get directions &rarr;</span></DirectionsLink></div>
             ) : (
               <div className="placeholder-box placeholder-box-light aspect-[16/10]">[Embedded map · Nashville location]</div>
             )}

@@ -1,3 +1,4 @@
+import DirectionsLink from '@/components/DirectionsLink';
 import Link from 'next/link';
 import Icon, { type IconName } from '@/components/Icon';
 import CountUp from '@/components/CountUp';
@@ -75,7 +76,7 @@ export default async function HomePage() {
             <div className="flex min-w-0 flex-col gap-1.5">
               <span className="eyebrow">Location</span>
               <span className="text-[15px] leading-snug text-body"><strong className="font-semibold text-ink">{site.address.street}</strong><br />{site.address.city}, {site.address.state} {site.address.zip}</span>
-              <a href={site.mapLinkUrl} className="text-link mt-1 text-[14px]" rel="noopener" target="_blank">Get directions <Icon name="arrow" size={14} /></a>
+              <DirectionsLink className="text-link mt-1 text-[14px]">Get directions <Icon name="arrow" size={14} /></DirectionsLink>
             </div>
           </div>
           <div className="flex gap-4 py-7 md:pl-8">
@@ -341,7 +342,7 @@ export default async function HomePage() {
           </div>
           <div className="col-span-12 flex min-h-[260px] lg:col-span-7 lg:min-h-[420px]">
             {mapEmbedSrc() ? (
-              <iframe src={mapEmbedSrc()!} title="Map to the church" loading="lazy" allowFullScreen referrerPolicy="no-referrer-when-downgrade" width="720" height="420" className="block min-h-[300px] w-full flex-1 rounded-lg border-0 lg:min-h-[420px]" />
+              <div className="relative w-full"><iframe src={mapEmbedSrc()!} title="Map to the church" loading="lazy" tabIndex={-1} aria-hidden="true" allowFullScreen referrerPolicy="no-referrer-when-downgrade" width="720" height="420" className="pointer-events-none block min-h-[300px] w-full flex-1 rounded-lg border-0 lg:min-h-[420px]" /><DirectionsLink className="absolute inset-0 flex items-end justify-center rounded-lg pb-4 no-underline focus-visible:outline-offset-4"><span className="rounded-full bg-white px-5 py-3 text-sm font-bold text-accent shadow-lg">Get directions &rarr;</span></DirectionsLink></div>
             ) : (
               <div className="placeholder-box placeholder-box-light flex-1">[Embedded map · Nashville location]</div>
             )}
