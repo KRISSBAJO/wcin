@@ -10,5 +10,8 @@ export async function remoteContent<T>(resource: string, limit?: number): Promis
   if (limit !== undefined) url.searchParams.set('limit', String(limit));
   const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
   if (!response.ok) throw new Error(`Content service unavailable (${response.status})`);
-  return response.json() as Promise<T>;
+  const data = await response.text();
+  // Media streams go directly to Render: shared proxy caches must not reuse byte ranges.
+  return JSON.parse(data, (_key, value) => typeof value === 'string' && value.startsWith('/media/')
+    ? new URL(value, origin).toString() : value) as T;
 }

@@ -25,7 +25,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const headers = new Headers({
     'Accept-Ranges': 'bytes',
     'Content-Type': found.contentType,
-    'Cache-Control': 'public, max-age=31536000, immutable',
+    'Cache-Control': found.contentRange ? 'private, no-store' : 'public, max-age=31536000, immutable',
+    'CDN-Cache-Control': 'no-store',
+    'Vercel-CDN-Cache-Control': 'no-store',
+    'Vary': 'Range',
     'X-Content-Type-Options': 'nosniff',
   });
   // ?download=flyer-name makes the browser save the file instead of showing it.
